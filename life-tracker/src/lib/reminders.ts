@@ -92,10 +92,13 @@ export function useReminderEngine(state: AppState, now: number, onFire: (f: Fire
   }, [now, onFire]);
 }
 
-export function tryBrowserNotify(title: string, body: string) {
+export async function tryBrowserNotify(title: string, body: string) {
   try {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') new Notification(title, { body });
-  } catch { /* not allowed in this frame */ }
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const reg = await navigator.serviceWorker?.getRegistration?.();
+    if (reg) { await reg.showNotification(title, { body, icon: './icon-192.png', tag: title }); return; }
+    new Notification(title, { body });
+  } catch { /* not allowed here */ }
 }
 
 // ---------- Calendar export (.ics) — real phone notifications via your calendar app ----------

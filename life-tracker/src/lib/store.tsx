@@ -114,7 +114,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Local cache (device-only convenience + offline fallback)
-  useEffect(() => { const t = setTimeout(() => writeCache(state), 300); return () => clearTimeout(t); }, [state]);
+  useEffect(() => { const t = setTimeout(() => writeCache(state), 150); return () => clearTimeout(t); }, [state]);
+  // Never lose a last-second tap: save immediately when the app is hidden, closed or reloaded.
+  useEffect(() => {
+    const flush = () => writeCache(stateRef.current);
+    const vis = () => document.visibilityState === 'hidden' && flush();
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', vis);
+    return () => { window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', vis); };
+  }, []);
 
   // Account storage via the artifact database (private per-person subtree).
   useEffect(() => {

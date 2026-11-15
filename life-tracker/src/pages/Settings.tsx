@@ -5,9 +5,19 @@ import { defaultSettings, normalizeDay, normalizeSettings, uid } from '../lib/de
 import { buildICS, clearSnooze, isPaused, snoozedUntil } from '../lib/reminders';
 import { getDay, totals } from '../lib/calc';
 import type { AppState, Reminder } from '../lib/types';
+import { IS_WEB } from '../lib/env';
 import { Confirm, Icon, NumberField, SectionTitle, Segmented, Sheet, Toggle, useToast } from '../components/ui';
 
 async function offerFile(filename: string, data: string): Promise<'saved' | 'unavailable' | 'declined'> {
+  if (IS_WEB) {
+    try {
+      const url = URL.createObjectURL(new Blob([data], { type: filename.endsWith('.ics') ? 'text/calendar' : filename.endsWith('.csv') ? 'text/csv' : 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      return 'saved';
+    } catch { return 'unavailable'; }
+  }
   try {
     const dl = await window.claude?.use?.('downloads');
     if (!dl) return 'unavailable';
@@ -88,9 +98,14 @@ export default function Settings() {
         <SectionTitle>Reminders</SectionTitle>
         <div className="rounded-2xl bg-blush-50 p-3.5 text-xs leading-relaxed text-taupe-700 dark:bg-night-700 dark:text-taupe-200">
           <p className="mb-1 flex items-center gap-1.5 font-semibold"><Icon name="info" className="h-4 w-4" />How reminders work here</p>
-          <p>Claude artifacts run inside a secure web page, and they <b>can’t schedule notifications</b> that arrive while the page is closed. Life Tracker gives you two ways around this:</p>
+          {IS_WEB ? (
+            <p>A website <b>can’t schedule notifications</b> that arrive while it is fully closed. Life Tracker gives you these options:</p>
+          ) : (
+            <p>Claude artifacts run inside a secure web page, and they <b>can’t schedule notifications</b> that arrive while the page is closed. Life Tracker gives you two ways around this:</p>
+          )}
           <p className="mt-1.5">1. <b>In-app reminders.</b> While Life Tracker is open, a reminder card appears at its time, with Snooze and Done. They follow Asia/Riyadh time. A reminder missed by up to an hour still appears when you open the app.</p>
           <p className="mt-1.5">2. <b>Calendar export (recommended for your iPhone).</b> This downloads the reminders you turned on as repeating calendar events in Asia/Riyadh time, each with an alert. Your phone’s Calendar app then sends real notifications. To change one later, edit or delete the event in your calendar.</p>
+          {IS_WEB && <p className="mt-1.5">3. <b>Browser notifications.</b> Allow them with “Try browser notifications” and reminders show as system notifications while the app is open or in the background. On iPhone this needs iOS 16.4 or later, and Life Tracker must be added to your Home Screen first.</p>}
         </div>
         <div className="flex items-center justify-between gap-3">
           <div><p className="text-sm font-medium">Reminders {s.remindersOn ? 'on' : 'off'}</p><p className="muted text-xs">Master switch. Everything stays off until you choose.</p></div>
@@ -129,7 +144,9 @@ export default function Settings() {
           <p className="mb-1 flex items-center gap-1.5 font-semibold"><Icon name="cloud" className="h-4 w-4" />
             {sync === 'synced' || sync === 'saving' ? 'Saved to your Claude account' : sync === 'connecting' ? 'Connecting…' : sync === 'error' ? 'Sync problem — saved on this device for now' : 'Saved on this device only'}
           </p>
-          {sync === 'local' ? (
+          {IS_WEB ? (
+            <p>Your entries are saved privately in this browser on this device. Nothing is sent to any server. They don’t sync between your phone and computer; to move them, use Backup and Restore below. On iPhone, <b>add Life Tracker to your Home Screen</b> (Share → Add to Home Screen) and open it from there. Safari may erase data for websites you haven’t visited in 7 days, but Home Screen apps are exempt. Export a backup now and then to be safe. A new day starts at midnight Riyadh time, and a new fitness week every Sunday.</p>
+          ) : sync === 'local' ? (
             <p>Account storage isn’t reachable in this view, for example when you’re signed out or offline. Your entries are kept in this browser only, so they won’t follow you to another device, and clearing browser data would erase them. Export a backup regularly. When account storage connects, data from this device is uploaded automatically.</p>
           ) : (
             <p>Your records are stored privately under your Claude account. Only you can see them, not even people you share the page with, and they sync across devices where you’re signed in. A copy also stays on this device so the app opens instantly. A new day starts at midnight Riyadh time and a new fitness week every Sunday (weeks run Sunday to Saturday). History is never deleted.</p>
