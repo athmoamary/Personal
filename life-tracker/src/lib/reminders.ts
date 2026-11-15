@@ -11,6 +11,12 @@ const ls = {
 const FIRED = 'lt-fired-v1';
 const SNOOZE = 'lt-snooze-v1';
 
+/** Quiet hours (Riyadh time); the range may cross midnight, e.g. 23:00–07:00. */
+export const inQuietHours = (q: { on: boolean; start: string; end: string } | undefined, minute: number) => {
+  if (!q?.on) return false;
+  const s = toMin(q.start), e = toMin(q.end);
+  return s <= e ? minute >= s && minute < e : minute >= s || minute < e;
+};
 export const isPaused = (r: Reminder, today: string) => !!r.pausedUntil && (r.pausedUntil === 'forever' || r.pausedUntil >= today);
 export const snoozedUntil = (id: string): number | undefined => (ls.get(SNOOZE) || {})[id];
 export function snooze(id: string, minutes: number) { const s = ls.get(SNOOZE) || {}; s[id] = Date.now() + minutes * 60000; ls.set(SNOOZE, s); }
@@ -56,7 +62,7 @@ export const slots = (r: Reminder) => {
 
 export interface Fire { r: Reminder; message: string }
 
-/** In-app reminder engine: checks once a minute while Life Tracker is open. Nothing runs unless you
+/** In-app reminder engine: checks once a minute while Évol is open. Nothing runs unless you
  *  turned on the master switch AND the individual reminder. */
 export function useReminderEngine(state: AppState, now: number, onFire: (f: Fire) => void) {
   const lastMinute = useRef(-1);
@@ -74,6 +80,7 @@ export function useReminderEngine(state: AppState, now: number, onFire: (f: Fire
     // prune old entries
     for (const k of Object.keys(fired)) if (fired[k] < now - 3 * 86400000) delete fired[k];
     const snoozes: Record<string, number> = ls.get(SNOOZE) || {};
+    if (inQuietHours(s.settings.quietHours, nm)) { ls.set(FIRED, fired); return; }
     for (const r of s.settings.reminders) {
       if (!r.enabled || isPaused(r, today) || !r.days.includes(dow(today))) continue;
       const rel = relevant(r, s, today);
@@ -104,22 +111,22 @@ export async function tryBrowserNotify(title: string, body: string) {
 // ---------- Calendar export (.ics) — real phone notifications via your calendar app ----------
 const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-export function buildICS(reminders: Reminder[], startDate: string) {
+export function buildICS(reminders: Reminder[], startDate: string, quiet?: { on: boolean; start: string; end: string }) {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
   const lines = [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Life Tracker//Reminders//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Life Tracker', 'X-WR-TIMEZONE:Asia/Riyadh',
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Evol//Reminders//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Évol', 'X-WR-TIMEZONE:Asia/Riyadh',
     'BEGIN:VTIMEZONE', 'TZID:Asia/Riyadh', 'BEGIN:STANDARD', 'DTSTART:19700101T000000', 'TZOFFSETFROM:+0300', 'TZOFFSETTO:+0300', 'TZNAME:+03', 'END:STANDARD', 'END:VTIMEZONE',
   ];
   for (const r of reminders) {
     const ds = startDate.replace(/-/g, '');
-    for (const m of slots(r)) {
+    for (const m of slots(r).filter((x) => !inQuietHours(quiet, x))) {
       const hh = String(Math.floor(m / 60)).padStart(2, '0');
       const mm = String(m % 60).padStart(2, '0');
       const end = m + 10;
       lines.push('BEGIN:VEVENT', `UID:${r.id}-${m}@life-tracker`, `DTSTAMP:${stamp}`,
         `DTSTART;TZID=Asia/Riyadh:${ds}T${hh}${mm}00`, `DTEND;TZID=Asia/Riyadh:${ds}T${String(Math.floor(end / 60) % 24).padStart(2, '0')}${String(end % 60).padStart(2, '0')}00`,
         `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map((d) => BYDAY[d]).join(',')}`,
-        `SUMMARY:${esc('Life Tracker · ' + r.label)}`, `DESCRIPTION:${esc(r.message)}`, 'TRANSP:TRANSPARENT',
+        `SUMMARY:${esc('Évol · ' + r.label)}`, `DESCRIPTION:${esc(r.message)}`, 'TRANSP:TRANSPARENT',
         'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(r.label)}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
     }
   }

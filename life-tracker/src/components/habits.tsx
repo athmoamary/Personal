@@ -27,9 +27,9 @@ export function HabitRow({ habit, date }: { habit: Habit; date: string }) {
       </button>
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-medium leading-snug ${done ? 'text-taupe-500 line-through decoration-sage-400/70' : ''} ${excluded ? 'text-taupe-400' : ''}`}>{habit.name}</p>
-        <p className="muted text-xs">{habit.time ? fmtTime(habit.time) : 'Any time'}{habit.conditional ? ' · only if needed' : ''}{s === 'notneeded' ? ' · not needed today' : s === 'skipped' ? ' · skipped (not counted)' : ''}</p>
+        <p className="muted text-xs">{habit.time ? fmtTime(habit.time) : 'Any time'}{habit.duration ? ` · ${habit.duration} min` : ''}{habit.conditional ? ' · only if needed' : ''}{s === 'notneeded' ? ' · not needed today' : s === 'skipped' ? ' · skipped (not counted)' : ''}</p>
       </div>
-      {!done && (habit.conditional ? (
+      {!done && habit.category !== 'frequency' && (habit.conditional ? (
         <button onClick={() => set(habit.id, s === 'notneeded' ? null : 'notneeded')} className={`chip shrink-0 border ${s === 'notneeded' ? 'border-sage-300 bg-sage-100 text-sage-700 dark:bg-sage-700/30 dark:text-sage-200' : 'border-taupe-200 text-taupe-500 dark:border-night-500 dark:text-taupe-300'}`}>Not needed</button>
       ) : (
         <button onClick={() => set(habit.id, s === 'skipped' ? null : 'skipped')} className={`chip shrink-0 border ${s === 'skipped' ? 'border-taupe-300 bg-taupe-100 text-taupe-600 dark:bg-night-600 dark:text-taupe-200' : 'border-taupe-200 text-taupe-400 dark:border-night-500'}`}>Skip</button>

@@ -1,6 +1,8 @@
-# Life Tracker
+# Évol
 
-A personal wellness and productivity tracker for fitness, nutrition, reading, habits and self-care.
+*Evolve a little, every day.*
+
+Évol (formerly Life Tracker) is a personal wellness and self-development app covering fitness, nutrition, reading, habits, self-care and Frequency Maxxing rituals.
 It is built with React, TypeScript and Tailwind CSS and compiled into a single HTML file that runs as a Claude artifact.
 
 - `npm install && npm run build` → `dist/index.html` (single self-contained page)
@@ -21,3 +23,13 @@ One-time setup:
 1. Repo **Settings → General → Danger Zone → Change visibility → Public** (Pages on a free plan needs a public repo).
 2. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 3. Merge this work into `main`. The workflow builds and publishes to `https://athmoamary.github.io/Personal/`.
+
+## Frequency Maxxing ✨
+- Six activities (`category: 'frequency'` habits) across morning, midday and evening rituals. Each counts once in the daily %, and Frequency % = done ÷ 6.
+- Listening studio: a countdown timer (5–30 min) stored as accumulated time plus a start timestamp. When it finishes, a global watcher logs the session and can tick the ritual activity.
+- Audio: a real sine tone generated with the Web Audio API (no files), independent of the timer, plus clearly labelled external links (YouTube/Spotify search).
+- Mood check-ins (before/after, 1–5 scale), journal hub (autosave, calendar, search, filters), and an optional "14 Days of Alignment" challenge.
+- Frequency associations are presented as wellness traditions, not science.
+
+## Data migration
+Settings version 2 adds the six Frequency activities and three reminders (disabled) to existing data. New activities start from the upgrade day, so earlier days are never marked missed. All existing habits, history and settings are preserved, and the storage key is unchanged.

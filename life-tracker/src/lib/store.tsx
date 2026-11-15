@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { AppState, DayRecord, Settings } from './types';
-import { defaultSettings, emptyDay, normalizeDay, normalizeSettings } from './defaults';
+import { defaultSettings, emptyDay, needsMigration, normalizeDay, normalizeSettings } from './defaults';
 import { todayStr } from './date';
 
 declare global { interface Window { claude?: { use: (name: string) => Promise<any> } } }
@@ -52,7 +52,7 @@ class Persister {
       } catch (e: any) {
         if (!this.pending.has(id)) this.pending.set(id, data); // keep it for the next attempt
         this.failed = true;
-        console.warn('Life Tracker: save failed', e?.code, e?.message);
+        console.warn('Évol: save failed', e?.code, e?.message);
       } finally {
         this.inflight.delete(id);
       }
@@ -113,7 +113,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState(next);
   }, []);
 
-  // Local cache (device-only convenience + offline fallback)
+  // Local cache (device-only convenience + offline fallback). Runs on first load too, so an upgraded cache is saved straight away.
   useEffect(() => { const t = setTimeout(() => writeCache(state), 150); return () => clearTimeout(t); }, [state]);
   // Never lose a last-second tap: save immediately when the app is hidden, closed or reloaded.
   useEffect(() => {
@@ -150,10 +150,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           let settings = cur.settings;
           const days = { ...cur.days };
           let changed = false;
+          let migrated: Settings | null = null;
           for (const d of snap.docs) {
             const data = d.data();
             if (!data) continue;
-            if (d.id === 'settings') { if (!p.dirty('settings')) { settings = normalizeSettings(clone(data)); changed = true; } }
+            if (d.id === 'settings') {
+              if (!p.dirty('settings')) {
+                settings = normalizeSettings(clone(data)); changed = true;
+                // Save the upgraded settings once, so new activities keep a fixed start date.
+                if (needsMigration(data) && !snap.metadata?.fromCache) migrated = settings;
+              }
+            }
             else if (d.id.startsWith('d-')) {
               const date = d.id.slice(2);
               if (!p.dirty(d.id)) { days[date] = normalizeDay(date, clone(data)); changed = true; }
@@ -186,9 +193,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             stateRef.current = next;
             setState(next);
           }
-        }, (err: any) => { if (!cancelled) { console.warn('Life Tracker: sync stopped', err?.code); setSync(p.col ? 'error' : 'local'); } });
+          if (migrated && p.col) p.queue('settings', migrated);
+        }, (err: any) => { if (!cancelled) { console.warn('Évol: sync stopped', err?.code); setSync(p.col ? 'error' : 'local'); } });
       } catch (e) {
-        console.warn('Life Tracker: storage unavailable', e);
+        console.warn('Évol: storage unavailable', e);
         if (!cancelled) setSync('local');
       }
     })();

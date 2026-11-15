@@ -227,3 +227,25 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
     </div>
   );
 }
+
+export function Collapsible({ title, subtitle, open: initial = false, children, right, tone = 'card' }: { title: ReactNode; subtitle?: ReactNode; open?: boolean; children: ReactNode; right?: ReactNode; tone?: 'card' | 'lav' | 'plain' }) {
+  const [open, setOpen] = useState(initial);
+  const cls = tone === 'lav' ? 'card-lav' : tone === 'card' ? 'card' : '';
+  return (
+    <section className={cls}>
+      <div className="flex items-center gap-2">
+        <button className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => setOpen(!open)} aria-expanded={open}>
+          <span className="min-w-0 flex-1">
+            <span className="h-card block">{title}</span>
+            {subtitle && <span className="muted block text-xs">{subtitle}</span>}
+          </span>
+          <span className={`text-taupe-400 transition-transform duration-300 ${open ? 'rotate-90' : ''}`}><Icon name="right" className="h-4 w-4" /></span>
+        </button>
+        {right}
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? 'mt-3 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="min-h-0 overflow-hidden">{open && children}</div>
+      </div>
+    </section>
+  );
+}

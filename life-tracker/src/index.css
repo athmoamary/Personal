@@ -20,6 +20,9 @@ body { @apply bg-ivory text-taupe-800 font-sans antialiased dark:bg-night-900 da
   .btn-ghost { @apply btn bg-cream dark:bg-night-700 text-taupe-700 dark:text-taupe-100 hover:bg-taupe-100 dark:hover:bg-night-600; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }
   .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium; }
+  .btn-lav { @apply btn bg-lavender-500 text-white hover:bg-lavender-600 shadow-sm; }
+  .card-lav { @apply rounded-3xl border border-lavender-100 bg-gradient-to-br from-lavender-50 via-ivory to-blush-50 p-4 shadow-soft animate-rise sm:p-5 dark:border-lavender-800 dark:from-night-800 dark:via-night-800 dark:to-[#2a2236]; }
+  .textarea { @apply input min-h-[76px] resize-y leading-relaxed; }
   .icon-btn { @apply inline-flex h-9 w-9 items-center justify-center rounded-full text-taupe-600 dark:text-taupe-200 hover:bg-cream dark:hover:bg-night-700 transition active:scale-95; }
 }
 

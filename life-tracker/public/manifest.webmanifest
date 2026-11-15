@@ -1,15 +1,28 @@
 {
-  "name": "Life Tracker",
-  "short_name": "Life Tracker",
-  "description": "My personal fitness, nutrition, reading and wellness tracker.",
+  "name": "Évol",
+  "short_name": "Évol",
+  "description": "Évol — Evolve a little, every day. Fitness, nutrition, wellness and intentional rituals.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#FFFDF8",
   "theme_color": "#FFFDF8",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

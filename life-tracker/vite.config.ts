@@ -13,7 +13,7 @@ const webHead = (): Plugin => ({
     { tag: 'link', attrs: { rel: 'apple-touch-icon', href: './apple-touch-icon.png' }, injectTo: 'head' },
     { tag: 'meta', attrs: { name: 'apple-mobile-web-app-capable', content: 'yes' }, injectTo: 'head' },
     { tag: 'meta', attrs: { name: 'mobile-web-app-capable', content: 'yes' }, injectTo: 'head' },
-    { tag: 'meta', attrs: { name: 'apple-mobile-web-app-title', content: 'Life Tracker' }, injectTo: 'head' },
+    { tag: 'meta', attrs: { name: 'apple-mobile-web-app-title', content: 'Évol' }, injectTo: 'head' },
     { tag: 'meta', attrs: { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }, injectTo: 'head' },
   ],
 });

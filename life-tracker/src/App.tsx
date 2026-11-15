@@ -9,14 +9,18 @@ import Nutrition from './pages/Nutrition';
 import Habits from './pages/Habits';
 import Insights from './pages/Insights';
 import Settings from './pages/Settings';
+import Frequency from './pages/Frequency';
+import Journal from './pages/Journal';
+import { useFmTimerWatcher } from './lib/fmtimer';
 
-const ROUTES = ['home', 'fitness', 'nutrition', 'habits', 'insights', 'planner', 'preferences'] as const;
+const ROUTES = ['home', 'fitness', 'nutrition', 'habits', 'frequency', 'insights', 'planner', 'preferences', 'journal', 'insights-frequency'] as const;
 type Route = (typeof ROUTES)[number];
 const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'home', label: 'Home', icon: 'home' },
   { r: 'fitness', label: 'Fitness', icon: 'fitness' },
   { r: 'nutrition', label: 'Nutrition', icon: 'nutrition' },
   { r: 'habits', label: 'Habits', icon: 'habits' },
+  { r: 'frequency', label: 'Ritual', icon: 'sparkle' },
   { r: 'insights', label: 'Insights', icon: 'insights' },
 ];
 const readHash = (): Route => { const h = location.hash.replace('#', '') as Route; return ROUTES.includes(h) ? h : 'home'; };
@@ -55,6 +59,10 @@ function Shell() {
     toast.push({ title: r.label, body: message, tone: 'reminder', sticky: true, actions });
   }, [state.settings.browserNotifications, toast, updateDay]);
   useReminderEngine(state, now, onFire);
+  useFmTimerWatcher(useCallback((minutes: number, hz: number) => {
+    toast.push({ title: 'Listening session complete ✨', body: `${minutes} minutes at ${hz} Hz, logged.` });
+    if (state.settings.browserNotifications) tryBrowserNotify('Session complete', `${minutes} minutes at ${hz} Hz.`);
+  }, [toast, state.settings.browserNotifications]));
 
   const syncLabel = sync === 'synced' ? 'Saved' : sync === 'saving' ? 'Saving…' : sync === 'connecting' ? 'Connecting…' : sync === 'error' ? 'Sync issue' : 'This device';
   const syncDot = sync === 'synced' ? 'bg-sage-500' : sync === 'saving' || sync === 'connecting' ? 'bg-cardio animate-pulse' : sync === 'error' ? 'bg-blush-500' : 'bg-taupe-300';
@@ -64,8 +72,8 @@ function Shell() {
       <div className="sticky top-0 z-30 bg-ivory/85 backdrop-blur-md safe-top dark:bg-night-900/85">
         <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-2.5">
           <button onClick={() => go('home')} className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blush-300 to-blush-500 text-white"><Icon name="sparkle" className="h-4 w-4" /></span>
-            <span className="font-display text-xl font-semibold tracking-wide">Life Tracker</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-lavender-300 via-blush-300 to-blush-500 font-display text-lg font-semibold leading-none text-white">É</span>
+            <span className="font-display text-2xl font-semibold tracking-wide">Évol</span>
           </button>
           <div className="flex items-center gap-1">
             <button onClick={() => go('preferences')} className="mr-1 flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] text-taupe-500 dark:text-taupe-300" title="Storage status"><span className={`h-1.5 w-1.5 rounded-full ${syncDot}`} />{syncLabel}</button>
@@ -82,16 +90,20 @@ function Shell() {
         {route === 'nutrition' && <Nutrition />}
         {route === 'habits' && <Habits />}
         {route === 'insights' && <Insights />}
+        {route === 'insights-frequency' && <Insights initialTab="frequency" />}
+        {route === 'frequency' && <Frequency go={go} />}
+        {route === 'journal' && <Journal go={go} />}
         {route === 'preferences' && <Settings />}
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-taupe-100 bg-ivory/90 backdrop-blur-md safe-bottom dark:border-night-600 dark:bg-night-900/90" aria-label="Main">
-        <div className="mx-auto flex max-w-xl justify-around px-2 pt-1.5">
+        <div className="mx-auto flex max-w-xl justify-around px-1 pt-1.5">
           {NAV.map((n) => {
-            const active = route === n.r || (n.r === 'fitness' && route === 'planner');
+            const active = route === n.r || (n.r === 'fitness' && route === 'planner') || (n.r === 'frequency' && route === 'journal') || (n.r === 'insights' && route === 'insights-frequency');
+            const lav = n.r === 'frequency';
             return (
-              <button key={n.r} onClick={() => go(n.r)} className={`flex min-w-[60px] flex-col items-center gap-0.5 rounded-2xl px-2 py-1.5 text-[10.5px] font-medium transition ${active ? 'text-blush-600 dark:text-blush-300' : 'text-taupe-400 dark:text-taupe-400'}`} aria-current={active ? 'page' : undefined}>
-                <span className={`flex h-8 w-12 items-center justify-center rounded-full transition ${active ? 'bg-blush-100 dark:bg-blush-700/30' : ''}`}><Icon name={n.icon} className="h-[22px] w-[22px]" strokeWidth={active ? 2 : 1.7} /></span>
+              <button key={n.r} onClick={() => go(n.r)} className={`flex min-w-[52px] flex-col items-center gap-0.5 rounded-2xl px-1 py-1.5 text-[10.5px] font-medium transition ${active ? (lav ? 'text-lavender-600 dark:text-lavender-300' : 'text-blush-600 dark:text-blush-300') : 'text-taupe-400 dark:text-taupe-400'}`} aria-current={active ? 'page' : undefined}>
+                <span className={`flex h-8 w-11 items-center justify-center rounded-full transition ${active ? (lav ? 'bg-lavender-100 dark:bg-lavender-800/50' : 'bg-blush-100 dark:bg-blush-700/30') : ''}`}><Icon name={n.icon} className="h-[22px] w-[22px]" strokeWidth={active ? 2 : 1.7} /></span>
                 {n.label}
               </button>
             );

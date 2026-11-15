@@ -169,7 +169,7 @@ function MealForm({ meal, onClose, onSave, recent }: { meal: Meal | null; onClos
             <NumberField label="Fat" value={m.fat} step={0.1} onChange={(v) => setM({ ...m, fat: v })} suffix="g" />
           </div>
         </details>
-        <p className="muted text-[11px]">Enter values from a label, recipe or app you trust. Life Tracker never guesses nutrition values.</p>
+        <p className="muted text-[11px]">Enter values from a label, recipe or app you trust. Évol never guesses nutrition values.</p>
         <button className="btn-primary w-full" disabled={!valid} onClick={() => { onSave({ ...m, name: m.name.trim(), protein: protein ?? 0, fiber: fiber ?? 0 }); onClose(); }}>Save meal</button>
       </div>
     </Sheet>
