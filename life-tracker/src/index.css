@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { -webkit-text-size-adjust: 100%; }
+body { @apply bg-ivory text-taupe-800 font-sans antialiased dark:bg-night-900 dark:text-taupe-100; }
+* { -webkit-tap-highlight-color: transparent; }
+.font-display { font-variant-numeric: lining-nums; }
+
+@layer components {
+  .card { @apply rounded-3xl bg-white/80 dark:bg-night-800 border border-taupe-100 dark:border-night-600 shadow-soft p-4 sm:p-5 animate-rise; }
+  .h-title { @apply font-display text-[1.65rem] leading-tight font-semibold text-taupe-800 dark:text-taupe-100; }
+  .h-card { @apply font-display text-xl font-semibold text-taupe-800 dark:text-taupe-100; }
+  .muted { @apply text-taupe-500 dark:text-taupe-300; }
+  .label { @apply block text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-taupe-300 mb-1; }
+  .input { @apply w-full rounded-2xl border border-taupe-200 dark:border-night-500 bg-ivory dark:bg-night-700 px-3.5 py-2.5 text-[16px] text-taupe-800 dark:text-taupe-100 placeholder:text-taupe-300 outline-none focus:border-blush-400 focus:ring-2 focus:ring-blush-200 dark:focus:ring-blush-700/50 transition; }
+  .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition active:scale-[.97] disabled:opacity-40 disabled:pointer-events-none; }
+  .btn-primary { @apply btn bg-blush-500 text-white hover:bg-blush-600 shadow-sm; }
+  .btn-sage { @apply btn bg-sage-500 text-white hover:bg-sage-600; }
+  .btn-ghost { @apply btn bg-cream dark:bg-night-700 text-taupe-700 dark:text-taupe-100 hover:bg-taupe-100 dark:hover:bg-night-600; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium; }
+  .icon-btn { @apply inline-flex h-9 w-9 items-center justify-center rounded-full text-taupe-600 dark:text-taupe-200 hover:bg-cream dark:hover:bg-night-700 transition active:scale-95; }
+}
+
+.safe-top { padding-top: max(env(safe-area-inset-top), 0px); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 8px); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
