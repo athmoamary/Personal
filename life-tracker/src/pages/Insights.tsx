@@ -7,19 +7,20 @@ import type { WorkoutType } from '../lib/types';
 import { Bar, BarChart, DateNav, Icon, Ring, Segmented, SectionTitle, Stat } from '../components/ui';
 import { TYPE_BG, TYPE_COLOR } from '../components/workouts';
 import { WeekNav } from './Fitness';
+import FrequencyInsights from '../components/FrequencyInsights';
 
 const SEQ_LIGHT = ['#F2F6F0', '#C9DAC2', '#A9C3A0', '#88A97F', '#56764F'];
 const SEQ_DARK = ['#2A2E29', '#3B4A38', '#4F6A4A', '#6C8F64', '#A9C3A0'];
 const useDark = () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
-export default function Insights() {
-  const [tab, setTab] = useState<'day' | 'week' | 'month'>('week');
+export default function Insights({ initialTab }: { initialTab?: 'frequency' }) {
+  const [tab, setTab] = useState<'day' | 'week' | 'month' | 'frequency'>(initialTab ?? 'week');
   return (
     <div className="space-y-4">
       <header className="px-1"><p className="text-xs font-medium uppercase tracking-[0.2em] text-blush-500">Insights</p><h1 className="h-title">Your progress, gently measured</h1></header>
-      <Segmented value={tab} onChange={setTab} options={[{ value: 'day', label: 'Daily' }, { value: 'week', label: 'Weekly' }, { value: 'month', label: 'Monthly' }]} />
-      {tab === 'day' ? <Daily /> : tab === 'week' ? <Weekly /> : <Monthly />}
-      <p className="muted px-2 text-center text-[11px] leading-relaxed">How scores work: daily items (habits, protein, fiber, reading) get a daily %. “Skip” and “Not needed” are left out of that %. Workouts are weekly targets (3 strength, 2 Pilates, 4 cardio) and count toward a separate weekly fitness %. Extra sessions are welcome but never inflate it.</p>
+      <Segmented value={tab} onChange={setTab} options={[{ value: 'day', label: 'Daily' }, { value: 'week', label: 'Weekly' }, { value: 'month', label: 'Monthly' }, { value: 'frequency', label: 'Ritual ✨' }]} />
+      {tab === 'day' ? <Daily /> : tab === 'week' ? <Weekly /> : tab === 'month' ? <Monthly /> : <FrequencyInsights />}
+      <p className="muted px-2 text-center text-[11px] leading-relaxed">How scores work: daily items (habits, Frequency Maxxing activities, protein, fiber, reading) get a daily %. Each activity counts once. “Skip” and “Not needed” are left out of that %. Workouts are weekly targets (3 strength, 2 Pilates, 4 cardio) and count toward a separate weekly fitness %. Extra sessions are welcome but never inflate it.</p>
     </div>
   );
 }

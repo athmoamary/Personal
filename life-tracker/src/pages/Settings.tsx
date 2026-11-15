@@ -47,23 +47,23 @@ export default function Settings() {
     else if (res === 'declined') toast.push({ title: 'Download cancelled' });
     else setFallback({ title, text });
   };
-  const exportJSON = () => exportFile(`life-tracker-backup-${today}.json`, JSON.stringify({ app: 'Life Tracker', exportedAt: new Date().toISOString(), timezone: TZ_LABEL, ...state }, null, 2), 'Backup (JSON)');
+  const exportJSON = () => exportFile(`evol-backup-${today}.json`, JSON.stringify({ app: 'Évol', exportedAt: new Date().toISOString(), timezone: TZ_LABEL, ...state }, null, 2), 'Backup (JSON)');
   const exportCSV = () => {
     const rows = [['date', 'meal', 'food', 'protein_g', 'fiber_g', 'calories', 'carbs_g', 'fat_g']];
     Object.keys(state.days).sort().forEach((d) => getDay(state, d).meals.forEach((m) => rows.push([d, m.meal, m.name, String(m.protein), String(m.fiber), String(m.calories ?? ''), String(m.carbs ?? ''), String(m.fat ?? '')])));
     const daily = [['date', 'protein_g', 'fiber_g', 'reading_done', 'workouts_done']];
     Object.keys(state.days).sort().forEach((d) => { const dd = getDay(state, d); const t = totals(dd); daily.push([d, String(t.protein), String(t.fiber), dd.reading.completed ? 'yes' : 'no', String(dd.workouts.filter((w) => w.status === 'done').length)]); });
     const csv = (r: string[][]) => r.map((x) => x.map((c) => /[",\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c).join(',')).join('\n');
-    exportFile(`life-tracker-meals-${today}.csv`, csv(rows) + '\n\n' + csv(daily), 'Meals & daily totals (CSV)');
+    exportFile(`evol-meals-${today}.csv`, csv(rows) + '\n\n' + csv(daily), 'Meals & daily totals (CSV)');
   };
   const enabledRems = s.reminders.filter((r) => r.enabled);
-  const exportICS = () => exportFile('life-tracker-reminders.ics', buildICS(enabledRems, today), 'Calendar reminders (.ics)');
+  const exportICS = () => exportFile('evol-reminders.ics', buildICS(enabledRems, today, s.quietHours), 'Calendar reminders (.ics)');
 
   const askBrowser = async () => {
     try {
       if (typeof Notification === 'undefined') throw new Error('unsupported');
       const p = await Notification.requestPermission();
-      if (p === 'granted') { set({ browserNotifications: true }); toast.push({ title: 'Browser notifications allowed', body: 'They appear while Life Tracker is open.' }); }
+      if (p === 'granted') { set({ browserNotifications: true }); toast.push({ title: 'Browser notifications allowed', body: 'They appear while Évol is open.' }); }
       else toast.push({ title: 'Notifications not allowed here', body: 'In-app reminders still work. Use the calendar export for phone notifications.' });
     } catch { toast.push({ title: 'Notifications not supported here', body: 'This frame cannot show system notifications. In-app reminders and the calendar export still work.' }); }
   };
@@ -99,17 +99,29 @@ export default function Settings() {
         <div className="rounded-2xl bg-blush-50 p-3.5 text-xs leading-relaxed text-taupe-700 dark:bg-night-700 dark:text-taupe-200">
           <p className="mb-1 flex items-center gap-1.5 font-semibold"><Icon name="info" className="h-4 w-4" />How reminders work here</p>
           {IS_WEB ? (
-            <p>A website <b>can’t schedule notifications</b> that arrive while it is fully closed. Life Tracker gives you these options:</p>
+            <p>A website <b>can’t schedule notifications</b> that arrive while it is fully closed. Évol gives you these options:</p>
           ) : (
-            <p>Claude artifacts run inside a secure web page, and they <b>can’t schedule notifications</b> that arrive while the page is closed. Life Tracker gives you two ways around this:</p>
+            <p>Claude artifacts run inside a secure web page, and they <b>can’t schedule notifications</b> that arrive while the page is closed. Évol gives you two ways around this:</p>
           )}
-          <p className="mt-1.5">1. <b>In-app reminders.</b> While Life Tracker is open, a reminder card appears at its time, with Snooze and Done. They follow Asia/Riyadh time. A reminder missed by up to an hour still appears when you open the app.</p>
+          <p className="mt-1.5">1. <b>In-app reminders.</b> While Évol is open, a reminder card appears at its time, with Snooze and Done. They follow Asia/Riyadh time. A reminder missed by up to an hour still appears when you open the app.</p>
           <p className="mt-1.5">2. <b>Calendar export (recommended for your iPhone).</b> This downloads the reminders you turned on as repeating calendar events in Asia/Riyadh time, each with an alert. Your phone’s Calendar app then sends real notifications. To change one later, edit or delete the event in your calendar.</p>
-          {IS_WEB && <p className="mt-1.5">3. <b>Browser notifications.</b> Allow them with “Try browser notifications” and reminders show as system notifications while the app is open or in the background. On iPhone this needs iOS 16.4 or later, and Life Tracker must be added to your Home Screen first.</p>}
+          {IS_WEB && <p className="mt-1.5">3. <b>Browser notifications.</b> Allow them with “Try browser notifications” and reminders show as system notifications while the app is open or in the background. On iPhone this needs iOS 16.4 or later, and Évol must be added to your Home Screen first.</p>}
         </div>
         <div className="flex items-center justify-between gap-3">
           <div><p className="text-sm font-medium">Reminders {s.remindersOn ? 'on' : 'off'}</p><p className="muted text-xs">Master switch. Everything stays off until you choose.</p></div>
           <Toggle on={s.remindersOn} label="All reminders" onChange={(v) => (v ? setConfirmOn(true) : set({ remindersOn: false }))} />
+        </div>
+        <div className="rounded-2xl bg-cream/60 p-3 dark:bg-night-700">
+          <div className="flex items-center justify-between gap-3">
+            <div><p className="text-sm font-medium">Quiet hours</p><p className="muted text-xs">No reminders during this window, in the app or in calendar exports.</p></div>
+            <Toggle on={s.quietHours.on} label="Quiet hours" onChange={(v) => set({ quietHours: { ...s.quietHours, on: v } })} />
+          </div>
+          {s.quietHours.on && (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <label className="block"><span className="label">From</span><input className="input" type="time" value={s.quietHours.start} onChange={(e) => e.target.value && set({ quietHours: { ...s.quietHours, start: e.target.value } })} /></label>
+              <label className="block"><span className="label">Until</span><input className="input" type="time" value={s.quietHours.end} onChange={(e) => e.target.value && set({ quietHours: { ...s.quietHours, end: e.target.value } })} /></label>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           {s.reminders.map((r) => {
@@ -145,7 +157,7 @@ export default function Settings() {
             {sync === 'synced' || sync === 'saving' ? 'Saved to your Claude account' : sync === 'connecting' ? 'Connecting…' : sync === 'error' ? 'Sync problem — saved on this device for now' : 'Saved on this device only'}
           </p>
           {IS_WEB ? (
-            <p>Your entries are saved privately in this browser on this device. Nothing is sent to any server. They don’t sync between your phone and computer; to move them, use Backup and Restore below. On iPhone, <b>add Life Tracker to your Home Screen</b> (Share → Add to Home Screen) and open it from there. Safari may erase data for websites you haven’t visited in 7 days, but Home Screen apps are exempt. Export a backup now and then to be safe. A new day starts at midnight Riyadh time, and a new fitness week every Sunday.</p>
+            <p>Your entries are saved privately in this browser on this device. Nothing is sent to any server. They don’t sync between your phone and computer; to move them, use Backup and Restore below. On iPhone, <b>add Évol to your Home Screen</b> (Share → Add to Home Screen) and open it from there. Safari may erase data for websites you haven’t visited in 7 days, but Home Screen apps are exempt. Export a backup now and then to be safe. A new day starts at midnight Riyadh time, and a new fitness week every Sunday.</p>
           ) : sync === 'local' ? (
             <p>Account storage isn’t reachable in this view, for example when you’re signed out or offline. Your entries are kept in this browser only, so they won’t follow you to another device, and clearing browser data would erase them. Export a backup regularly. When account storage connects, data from this device is uploaded automatically.</p>
           ) : (
@@ -160,12 +172,12 @@ export default function Settings() {
         </div>
       </section>
 
-      <p className="muted pb-2 text-center text-[11px]">Life Tracker · all times in {TZ_LABEL} (UTC+3) · today is {todayStr()}</p>
+      <p className="muted pb-2 text-center text-[11px]">Évol · Evolve a little, every day · all times in {TZ_LABEL} (UTC+3) · today is {todayStr()}</p>
 
       {/* Explicit permission before anything is turned on */}
       <Sheet open={confirmOn} onClose={() => setConfirmOn(false)} title="Turn on reminders?">
         <p className="muted mb-3 text-sm">This allows the reminders you switch on individually. Right now, <b>{enabledRems.length}</b> {enabledRems.length === 1 ? 'is' : 'are'} switched on. Nothing else turns on by itself.</p>
-        <p className="muted mb-5 text-sm">In-app reminders appear only while Life Tracker is open. For phone notifications, use “Export to calendar”.</p>
+        <p className="muted mb-5 text-sm">In-app reminders appear only while Évol is open. For phone notifications, use “Export to calendar”.</p>
         <div className="flex gap-2"><button className="btn-ghost flex-1" onClick={() => setConfirmOn(false)}>Not now</button><button className="btn-primary flex-1" onClick={() => { set({ remindersOn: true }); setConfirmOn(false); toast.push({ title: 'Reminders on' }); }}>Yes, turn on</button></div>
       </Sheet>
       <Confirm open={cancelAll} onClose={() => setCancelAll(false)} title="Cancel all reminders?" confirmLabel="Cancel all" body="Every reminder will be switched off, along with the master switch and any snoozes. Your times and settings are kept. Calendar events you already exported must be removed in your calendar app."
@@ -235,7 +247,7 @@ function ImportSheet({ open, onClose, onImport }: { open: boolean; onClose: () =
   const parse = (raw: string) => {
     try {
       const p = JSON.parse(raw);
-      if (!p || typeof p !== 'object' || !p.settings || !p.days) throw new Error('This doesn’t look like a Life Tracker backup.');
+      if (!p || typeof p !== 'object' || !p.settings || !p.days) throw new Error('This doesn’t look like an Évol backup.');
       const days: AppState['days'] = {};
       for (const [k, v] of Object.entries(p.days)) if (/^\d{4}-\d{2}-\d{2}$/.test(k)) days[k] = normalizeDay(k, v);
       onImport({ settings: normalizeSettings(p.settings), days });
@@ -244,7 +256,7 @@ function ImportSheet({ open, onClose, onImport }: { open: boolean; onClose: () =
   };
   return (
     <Sheet open={open} onClose={onClose} title="Restore backup">
-      <p className="muted mb-3 text-sm">Choose a Life Tracker JSON backup, or paste its contents. This replaces your current data.</p>
+      <p className="muted mb-3 text-sm">Choose an Évol (or Life Tracker) JSON backup, or paste its contents. This replaces your current data.</p>
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) parse(await f.text()); e.target.value = ''; }} />
       <button className="btn-ghost mb-3 w-full" onClick={() => fileRef.current?.click()}><Icon name="upload" className="h-4 w-4" />Choose file</button>
       <textarea className="input h-32 font-mono text-[11px]" value={text} onChange={(e) => setText(e.target.value)} placeholder="…or paste backup JSON here" />

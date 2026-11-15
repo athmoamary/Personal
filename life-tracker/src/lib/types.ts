@@ -52,6 +52,28 @@ export interface PlanItem {
   createdAt: number;
 }
 
+export type MoodKind = 'low' | 'anxious' | 'heavy' | 'manifest';
+export interface MoodEntry {
+  id: string;
+  kind: MoodKind;
+  before?: number; // 1–5
+  after?: number; // 1–5
+  note?: string;
+  at: number;
+}
+
+export type RitualId = 'morning' | 'midday' | 'evening';
+/** Frequency listening countdown. Same “accumulated + started at” design as the reading timer. */
+export interface FmTimer {
+  freq: number;
+  minutes: number;
+  ritual: RitualId | 'none';
+  auto: boolean; // tick the ritual's activity when the countdown ends
+  accMs: number;
+  runningSince: number | null;
+}
+export interface ListenSession { id: string; freq: number; minutes: number; ritual: RitualId | 'none'; at: number }
+
 export interface DayRecord {
   date: string;
   habits: Record<string, HabitStatus>;
@@ -59,6 +81,12 @@ export interface DayRecord {
   reading: Reading;
   workouts: Workout[];
   plan: PlanItem[];
+  // Frequency Maxxing (all optional so older records stay valid)
+  journal?: Record<string, string>; // prompt id → text
+  fmCategory?: string; // manifestation category
+  moods?: MoodEntry[];
+  fmTimer?: FmTimer | null;
+  listens?: ListenSession[];
 }
 
 export interface Habit {
@@ -68,7 +96,9 @@ export interface Habit {
   days: number[]; // 0 = Sunday … 6 = Saturday
   conditional: boolean; // allows “Not needed”
   enabled: boolean;
-  category: 'wellness' | 'selfcare';
+  category: 'wellness' | 'selfcare' | 'frequency';
+  duration?: number; // minutes (shown on the checklist)
+  ritual?: RitualId;
   startDate: string; // counts from this date (so new habits never create “missed” history)
   note?: string;
 }
@@ -88,6 +118,9 @@ export interface Reminder {
   pausedUntil?: string; // YYYY-MM-DD; paused through that date ('forever' = indefinitely)
 }
 
+export interface ChallengeReflection { energy?: string; balance?: string; intentional?: string; difference?: string; continueWith?: string }
+export interface Challenge { startDate: string; reflection?: ChallengeReflection; endedAt?: string }
+
 export interface Settings {
   version: number;
   name: string;
@@ -103,6 +136,10 @@ export interface Settings {
   remindersOn: boolean; // master switch — off by default
   browserNotifications: boolean;
   firstUsed: string;
+  quietHours: { on: boolean; start: string; end: string };
+  affirmations: { morning: string[]; midday: string[]; evening: string[] }; // your own, added to the suggestions
+  challenge?: Challenge | null;
+  pastChallenges?: Challenge[];
 }
 
 export interface AppState { settings: Settings; days: Record<string, DayRecord> }

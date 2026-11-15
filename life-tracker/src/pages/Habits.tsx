@@ -51,12 +51,19 @@ export default function Habits() {
         )}
       </section>
 
+      <section className="card-lav">
+        <div className="flex items-center justify-between gap-3">
+          <div><h3 className="h-card">Frequency Maxxing ✨</h3><p className="muted text-xs">Morning, midday and evening rituals: listening, affirmations and journaling.</p></div>
+          <a className="btn-lav btn-sm" href="#frequency">Open</a>
+        </div>
+      </section>
+
       <HabitManager category={manage} onClose={() => setManage(null)} />
     </div>
   );
 }
 
-function HabitManager({ category, onClose }: { category: Habit['category'] | null; onClose: () => void }) {
+export function HabitManager({ category, onClose }: { category: Habit['category'] | null; onClose: () => void }) {
   const { state, updateSettings, today } = useStore();
   const toast = useToast();
   const [edit, setEdit] = useState<Habit | null>(null);
@@ -66,13 +73,13 @@ function HabitManager({ category, onClose }: { category: Habit['category'] | nul
   const upsert = (h: Habit) => updateSettings((s) => ({ ...s, habits: s.habits.some((x) => x.id === h.id) ? s.habits.map((x) => (x.id === h.id ? h : x)) : [...s.habits, h] }));
   return (
     <>
-      <Sheet open={!edit} onClose={onClose} title={category === 'wellness' ? 'Wellness routine' : 'Self-care checklist'}>
+      <Sheet open={!edit} onClose={onClose} title={category === 'wellness' ? 'Wellness routine' : category === 'frequency' ? 'Frequency Maxxing activities' : 'Self-care checklist'}>
         <div className="space-y-2">
           {list.map((h) => (
             <div key={h.id} className="flex items-center gap-3 rounded-2xl bg-cream/60 p-3 dark:bg-night-700">
               <button className="min-w-0 flex-1 text-left" onClick={() => setEdit(h)}>
                 <p className={`text-sm font-medium ${h.enabled ? '' : 'text-taupe-400'}`}>{h.name}</p>
-                <p className="muted text-xs">{h.time ? fmtTime(h.time) : 'Any time'} · {h.days.length === 7 ? 'Every day' : h.days.map((d) => DAY_SHORT[d]).join(', ')}{h.conditional ? ' · conditional' : ''}</p>
+                <p className="muted text-xs">{h.time ? fmtTime(h.time) : 'Any time'}{h.duration ? ` · ${h.duration} min` : ''} · {h.days.length === 7 ? 'Every day' : h.days.map((d) => DAY_SHORT[d]).join(', ')}{h.conditional ? ' · conditional' : ''}</p>
               </button>
               <Toggle on={h.enabled} label={`Enable ${h.name}`} onChange={(v) => upsert({ ...h, enabled: v, startDate: v && !h.enabled ? today : h.startDate })} />
             </div>
@@ -85,7 +92,10 @@ function HabitManager({ category, onClose }: { category: Habit['category'] | nul
         {edit && (
           <div className="space-y-4">
             <label className="block"><span className="label">Habit</span><input className="input" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="e.g. Stretch before bed" /></label>
-            <label className="block"><span className="label">Time (optional)</span><input className="input" type="time" value={edit.time ?? ''} onChange={(e) => setEdit({ ...edit, time: e.target.value || undefined })} /></label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block"><span className="label">Time (optional)</span><input className="input" type="time" value={edit.time ?? ''} onChange={(e) => setEdit({ ...edit, time: e.target.value || undefined })} /></label>
+              <label className="block"><span className="label">Duration (optional)</span><input className="input" type="number" inputMode="numeric" min={0} value={edit.duration ?? ''} onChange={(e) => setEdit({ ...edit, duration: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })} placeholder="min" /></label>
+            </div>
             <div>
               <span className="label">Days</span>
               <div className="flex gap-1.5">
@@ -99,7 +109,7 @@ function HabitManager({ category, onClose }: { category: Habit['category'] | nul
               <div><p className="text-sm font-medium">Conditional</p><p className="muted text-xs">Adds a “Not needed” option that never counts as missed.</p></div>
               <Toggle on={edit.conditional} label="Conditional" onChange={(v) => setEdit({ ...edit, conditional: v })} />
             </div>
-            <div><span className="label">List</span><Segmented value={edit.category} onChange={(c) => setEdit({ ...edit, category: c })} size="sm" options={[{ value: 'wellness', label: 'Wellness routine' }, { value: 'selfcare', label: 'Self-care' }]} /></div>
+            <div><span className="label">List</span><Segmented value={edit.category} onChange={(c) => setEdit({ ...edit, category: c })} size="sm" options={[{ value: 'wellness', label: 'Wellness' }, { value: 'selfcare', label: 'Self-care' }, { value: 'frequency', label: 'Frequency' }]} /></div>
             <div className="flex gap-2">
               {state.settings.habits.some((x) => x.id === edit.id) && <button className="btn-ghost" onClick={() => setDel(edit)}><Icon name="trash" className="h-4 w-4" />Delete</button>}
               <button className="btn-primary flex-1" disabled={!edit.name.trim() || !edit.days.length} onClick={() => { upsert({ ...edit, name: edit.name.trim() }); toast.push({ title: 'Habit saved' }); setEdit(null); }}>Save</button>

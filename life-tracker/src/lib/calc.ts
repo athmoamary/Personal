@@ -74,7 +74,7 @@ export function longestStreak(dates: string[], test: (d: string) => boolean) {
   return best;
 }
 
-/** Habit completion rates. Days before you started using Life Tracker are ignored, and today only
+/** Habit completion rates. Days before you started using Évol are ignored, and today only
  *  counts once you've marked the habit (it isn't “missed” before the day is over). */
 export function habitRates(s: AppState, dates: string[], today?: string) {
   return s.settings.habits.filter((h) => h.enabled).map((h) => {

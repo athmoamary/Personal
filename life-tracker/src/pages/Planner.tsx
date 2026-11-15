@@ -82,7 +82,7 @@ export default function Planner() {
 
       {days.map((d) => {
         const day = getDay(state, d);
-        const habits = habitsForDay(state.settings, d).filter((h) => h.time);
+        const habits = habitsForDay(state.settings, d).filter((h) => h.time && h.category !== 'frequency');
         return (
           <section key={d} className={`card ${d === today ? 'ring-1 ring-blush-300 dark:ring-blush-700' : ''}`}>
             <div className="mb-2 flex items-center justify-between">
