@@ -132,7 +132,7 @@ export default function Settings() {
           {sync === 'local' ? (
             <p>Account storage isn’t reachable in this view, for example when you’re signed out or offline. Your entries are kept in this browser only, so they won’t follow you to another device, and clearing browser data would erase them. Export a backup regularly. When account storage connects, data from this device is uploaded automatically.</p>
           ) : (
-            <p>Your records are stored privately under your Claude account. Only you can see them, not even people you share the page with, and they sync across devices where you’re signed in. A copy also stays on this device so the app opens instantly. A new day starts at midnight Riyadh time and a new fitness week every Monday. History is never deleted.</p>
+            <p>Your records are stored privately under your Claude account. Only you can see them, not even people you share the page with, and they sync across devices where you’re signed in. A copy also stays on this device so the app opens instantly. A new day starts at midnight Riyadh time and a new fitness week every Sunday (weeks run Sunday to Saturday). History is never deleted.</p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">

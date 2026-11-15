@@ -125,7 +125,7 @@ function Monthly() {
   const seq = dark ? SEQ_DARK : SEQ_LIGHT;
   const days = monthDays(ms);
   const past = days.filter((d) => d <= today && d >= state.settings.firstUsed);
-  const lead = (dow(days[0]) + 6) % 7; // Monday-first grid
+  const lead = dow(days[0]); // Sunday-first grid
   const [hover, setHover] = useState<string | null>(null);
   const scoreOf = (d: string) => (d <= today && d >= state.settings.firstUsed ? dayScore(state, d).pct : null);
   const bin = (p: number) => (p >= 0.999 ? 4 : p >= 0.75 ? 3 : p >= 0.5 ? 2 : p > 0 ? 1 : 0);
@@ -152,7 +152,7 @@ function Monthly() {
       <section className="card">
         <SectionTitle>Habit completion</SectionTitle>
         <div className="grid grid-cols-7 gap-1.5 text-center">
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((l, i) => <span key={i} className="muted text-[10px] font-medium">{l}</span>)}
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((l, i) => <span key={i} className="muted text-[10px] font-medium">{l}</span>)}
           {Array.from({ length: lead }, (_, i) => <span key={'x' + i} />)}
           {days.map((d) => {
             const p = scoreOf(d);

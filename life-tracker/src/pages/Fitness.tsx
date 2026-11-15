@@ -62,7 +62,7 @@ export default function Fitness({ go }: { go: (r: string) => void }) {
             <span key={s.id} className={`chip ${strengthDone.has(s.id) ? 'bg-strength text-white' : 'bg-cream text-taupe-500 dark:bg-night-700 dark:text-taupe-300'}`}>{strengthDone.has(s.id) && <Icon name="check" className="h-3 w-3" strokeWidth={2.6} />}{s.label}</span>
           ))}
         </div>
-        <p className="muted mt-3 text-[11px]">Targets reset every Monday (Riyadh time). Past weeks stay in your history. Several workout types can share one day.</p>
+        <p className="muted mt-3 text-[11px]">Targets reset every Sunday (Riyadh time). Past weeks stay in your history. Several workout types can share one day.</p>
       </section>
 
       <section className="card">

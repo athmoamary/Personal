@@ -9,7 +9,7 @@ export const parse = (ds: string) => new Date(ds + 'T00:00:00Z');
 export const fmt = (d: Date) => d.toISOString().slice(0, 10);
 export const addDays = (ds: string, n: number) => { const d = parse(ds); d.setUTCDate(d.getUTCDate() + n); return fmt(d); };
 export const dow = (ds: string) => parse(ds).getUTCDay();
-export const weekStart = (ds: string) => addDays(ds, -((dow(ds) + 6) % 7)); // Monday
+export const weekStart = (ds: string) => addDays(ds, -dow(ds)); // Sunday — weeks run Sunday to Saturday
 export const weekDays = (ds: string) => { const s = weekStart(ds); return Array.from({ length: 7 }, (_, i) => addDays(s, i)); };
 export const monthStart = (ds: string) => ds.slice(0, 8) + '01';
 export const monthDays = (ds: string) => {
